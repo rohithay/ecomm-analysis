@@ -1,12 +1,7 @@
-olist_duckdb:
+ecomm_analysis:
   target: dev
   outputs:
     dev:
       type: duckdb
-      path: "{{ env_var('DUCKDB_PATH', 'dev.duckdb') }}"
+      path: /Users/rohitha/github-projects/ecomm-analysis/dev.duckdb
       threads: 4
-
-    prod:
-      type: duckdb
-      path: "{{ env_var('DUCKDB_PATH', 'prod.duckdb') }}"
-      threads: 8
