@@ -6,7 +6,6 @@ sources:
       Raw data from the Olist Brazilian E-Commerce public dataset (Kaggle).
       Contains ~100k orders from 2016–2018 across multiple product categories.
       Loaded via the load_data.py script into DuckDB from local CSV files.
-    database: "{{ env_var('DUCKDB_PATH', 'dev.duckdb') }}"
     schema: main
     tables:
       - name: orders
