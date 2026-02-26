@@ -1,0 +1,8 @@
+# .dbtignore
+
+# ignore all python files
+**/*.py
+
+# ignore all folders in the github directory
+.github/
+.vscode/
