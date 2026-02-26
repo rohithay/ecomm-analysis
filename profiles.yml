@@ -1,0 +1,12 @@
+olist_duckdb:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "{{ env_var('DUCKDB_PATH', 'dev.duckdb') }}"
+      threads: 4
+
+    prod:
+      type: duckdb
+      path: "{{ env_var('DUCKDB_PATH', 'prod.duckdb') }}"
+      threads: 8

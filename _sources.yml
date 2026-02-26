@@ -1,0 +1,126 @@
+version: 2
+
+sources:
+  - name: olist_raw
+    description: >
+      Raw data from the Olist Brazilian E-Commerce public dataset (Kaggle).
+      Contains ~100k orders from 2016–2018 across multiple product categories.
+      Loaded via the load_data.py script into DuckDB from local CSV files.
+    database: "{{ env_var('DUCKDB_PATH', 'dev.duckdb') }}"
+    schema: main
+    tables:
+      - name: orders
+        description: One row per order. Core transaction table.
+        columns:
+          - name: order_id
+            description: Unique order identifier (UUID)
+            tests:
+              - unique
+              - not_null
+          - name: customer_id
+            description: FK to customers table
+            tests: [not_null]
+          - name: order_status
+            description: "approved | canceled | delivered | invoiced | processing | shipped | unavailable"
+            tests:
+              - accepted_values:
+                  values: [approved, canceled, delivered, invoiced, processing, shipped, unavailable]
+          - name: order_purchase_timestamp
+            tests: [not_null]
+          - name: order_delivered_customer_date
+          - name: order_estimated_delivery_date
+
+      - name: customers
+        description: Unique customers, one row per customer_id
+        columns:
+          - name: customer_id
+            tests: [unique, not_null]
+          - name: customer_unique_id
+            description: Allows linking repeat buyers
+          - name: customer_zip_code_prefix
+          - name: customer_city
+          - name: customer_state
+
+      - name: order_items
+        description: Line items within each order (one order can have multiple items)
+        columns:
+          - name: order_id
+            tests: [not_null]
+          - name: order_item_id
+            description: Sequential item number within the order
+          - name: product_id
+            tests: [not_null]
+          - name: seller_id
+            tests: [not_null]
+          - name: price
+            tests:
+              - not_null
+              - dbt_expectations.expect_column_values_to_be_between:
+                  min_value: 0
+          - name: freight_value
+            tests: [not_null]
+
+      - name: products
+        description: Product catalog
+        columns:
+          - name: product_id
+            tests: [unique, not_null]
+          - name: product_category_name
+          - name: product_weight_g
+          - name: product_length_cm
+          - name: product_height_cm
+          - name: product_width_cm
+
+      - name: sellers
+        description: Marketplace sellers
+        columns:
+          - name: seller_id
+            tests: [unique, not_null]
+          - name: seller_zip_code_prefix
+          - name: seller_city
+          - name: seller_state
+
+      - name: order_reviews
+        description: Customer reviews per order
+        columns:
+          - name: review_id
+            tests: [not_null]
+          - name: order_id
+            tests: [not_null]
+          - name: review_score
+            tests:
+              - accepted_values:
+                  values: [1, 2, 3, 4, 5]
+          - name: review_creation_date
+          - name: review_answer_timestamp
+
+      - name: order_payments
+        description: Payment records per order (can have multiple payment methods)
+        columns:
+          - name: order_id
+            tests: [not_null]
+          - name: payment_sequential
+          - name: payment_type
+            tests:
+              - accepted_values:
+                  values: [boleto, credit_card, debit_card, not_defined, voucher]
+          - name: payment_installments
+          - name: payment_value
+            tests: [not_null]
+
+      - name: product_category_name_translation
+        description: English translations of Portuguese category names
+        columns:
+          - name: product_category_name
+            tests: [unique, not_null]
+          - name: product_category_name_english
+            tests: [not_null]
+
+      - name: geolocation
+        description: Brazilian zip code geolocation data
+        columns:
+          - name: geolocation_zip_code_prefix
+          - name: geolocation_lat
+          - name: geolocation_lng
+          - name: geolocation_city
+          - name: geolocation_state
