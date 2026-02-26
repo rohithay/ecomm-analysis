@@ -1,0 +1,74 @@
+version: 2
+
+models:
+  # ── Core Dimension & Fact Tables ────────────────────────────────
+  - name: dim_customers
+    description: >
+      Customer dimension with lifetime value, segment, and cohort.
+      Grain: one row per customer_unique_id.
+    columns:
+      - name: customer_id
+        tests: [unique, not_null]
+      - name: customer_segment
+        tests:
+          - accepted_values:
+              values: [one_time, repeat, loyal, no_orders]
+      - name: lifetime_value
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+
+  - name: dim_products
+    description: >
+      Product dimension with category, physical attributes, and sales stats.
+      Grain: one row per product_id.
+    columns:
+      - name: product_id
+        tests: [unique, not_null]
+
+  - name: fct_orders
+    description: >
+      Core order fact table.
+      Grain: one row per order_id.
+    columns:
+      - name: order_id
+        tests: [unique, not_null]
+      - name: customer_id
+        tests: [not_null]
+      - name: gross_order_value
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+      - name: order_status
+        tests:
+          - accepted_values:
+              values: [approved, canceled, delivered, invoiced, processing, shipped, unavailable]
+
+  # ── Analytics Aggregates ────────────────────────────────────────
+  - name: agg_daily_revenue
+    description: Daily revenue snapshot with 7-day moving averages.
+    columns:
+      - name: order_date
+        tests: [unique, not_null]
+      - name: gross_revenue
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+
+  - name: agg_seller_performance
+    description: Seller scorecard with tier classification.
+    columns:
+      - name: seller_id
+        tests: [unique, not_null]
+      - name: seller_tier
+        tests:
+          - accepted_values:
+              values: [platinum, gold, silver, bronze]
+
+  - name: agg_product_category_sales
+    description: Monthly category-level revenue with MoM growth.
+    columns:
+      - name: category_name
+        tests: [not_null]
+      - name: order_month
+        tests: [not_null]
