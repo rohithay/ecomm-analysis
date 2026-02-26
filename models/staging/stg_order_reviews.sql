@@ -1,47 +1,35 @@
 with source as (
-    select * from {{ source('olist_raw', 'orders') }}
+    select * from {{ source('olist_raw', 'order_reviews') }}
+),
+
+-- Take the latest review per order in case of duplicates
+deduped as (
+    select *,
+        row_number() over (
+            partition by order_id
+            order by cast(review_answer_timestamp as timestamp) desc
+        ) as rn
+    from source
 ),
 
 renamed as (
     select
-        -- Keys
+        review_id,
         order_id,
-        customer_id,
+        cast(review_score as int)                   as review_score,
+        review_comment_title                        as comment_title,
+        review_comment_message                      as comment_message,
+        cast(review_creation_date  as timestamp)    as review_created_at,
+        cast(review_answer_timestamp as timestamp)  as review_answered_at,
 
-        -- Status
-        order_status,
-
-        -- Timestamps — cast strings to proper timestamps
-        cast(order_purchase_timestamp      as timestamp) as purchased_at,
-        cast(order_approved_at             as timestamp) as approved_at,
-        cast(order_delivered_carrier_date  as timestamp) as shipped_at,
-        cast(order_delivered_customer_date as timestamp) as delivered_at,
-        cast(order_estimated_delivery_date as timestamp) as estimated_delivery_at,
-
-        -- Derived fields
+        -- Sentiment bucket
         case
-            when order_delivered_customer_date is not null
-                 and order_estimated_delivery_date is not null
-            then datediff(
-                'day',
-                cast(order_estimated_delivery_date as timestamp),
-                cast(order_delivered_customer_date as timestamp)
-            )
-            else null
-        end as delivery_days_vs_estimate, -- positive = late, negative = early
-
-        case
-            when order_delivered_customer_date is not null
-                 and order_purchase_timestamp is not null
-            then datediff(
-                'day',
-                cast(order_purchase_timestamp as timestamp),
-                cast(order_delivered_customer_date as timestamp)
-            )
-            else null
-        end as days_to_deliver
-
-    from source
+            when cast(review_score as int) >= 4 then 'positive'
+            when cast(review_score as int) =  3 then 'neutral'
+            else 'negative'
+        end as sentiment
+    from deduped
+    where rn = 1
 )
 
 select * from renamed
