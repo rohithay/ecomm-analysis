@@ -36,7 +36,11 @@ models:
       analytics:
         +schema: analytics
 
+tests:
+  +store_failures: true
+  +severity: warn
+
 vars:
-  # Date range filter for incremental loads (optional)
+  # Date range filter for incremental loads
   start_date: "2016-01-01"
   end_date: "2018-12-31"
