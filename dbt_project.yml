@@ -40,8 +40,10 @@ models:
       +tags: ["marts", "core", "analytics"]
       core:
         +schema: core
+        +severity: error
       analytics:
         +schema: analytics
+        +severity: error
 
 tests:
   +store_failures: true
