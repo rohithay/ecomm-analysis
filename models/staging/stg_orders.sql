@@ -22,13 +22,9 @@ renamed as (
         case
             when order_delivered_customer_date is not null
                  and order_estimated_delivery_date is not null
-            then datediff(
-                'day',
-                cast(order_estimated_delivery_date as timestamp),
-                cast(order_delivered_customer_date as timestamp)
-            )
+            then order_delivered_customer_date > order_estimated_delivery_date
             else null
-        end as delivery_days_vs_estimate, -- positive = late, negative = early
+        end as is_late_delivery, -- positive = late, negative = early
 
         case
             when order_delivered_customer_date is not null
