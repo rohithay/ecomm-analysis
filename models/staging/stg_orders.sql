@@ -28,7 +28,7 @@ renamed as (
 
         case
             when order_delivered_customer_date is not null
-                 and order_purchase_timestamp is not null
+               is_late_deliverystamp is not null
             then datediff(
                 'day',
                 cast(order_purchase_timestamp as timestamp),

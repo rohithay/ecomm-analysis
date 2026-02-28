@@ -46,11 +46,11 @@ final as (
 
         -- Delivery metrics
         o.days_to_deliver,
-        o.delivery_days_vs_estimate,
+        o.is_late_delivery,
         case
-            when o.delivery_days_vs_estimate < 0  then 'early'
-            when o.delivery_days_vs_estimate = 0  then 'on_time'
-            when o.delivery_days_vs_estimate <= 3 then 'slightly_late'
+            when o.is_late_delivery < 0  then 'early'
+            when o.is_late_delivery = 0  then 'on_time'
+            when o.is_late_delivery <= 3 then 'slightly_late'
             else 'late'
         end as delivery_timeliness,
 
@@ -75,7 +75,7 @@ final as (
         (o.review_score is not null)                            as has_review,
         (o.item_count > 1)                                      as is_multi_item,
         (o.distinct_sellers > 1)                                as is_multi_seller,
-        (o.delivery_days_vs_estimate > 0)                       as was_late
+        (o.is_late_delivery > 0)                       as was_late
 
     from orders o
     left join customers c on o.customer_id = c.customer_id

@@ -55,7 +55,7 @@ final as (
         o.delivered_at,
         o.estimated_delivery_at,
         o.days_to_deliver,
-        o.delivery_days_vs_estimate,
+        o.is_late_delivery,
 
         -- Items
         coalesce(i.item_count, 0)           as item_count,

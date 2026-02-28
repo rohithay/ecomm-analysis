@@ -27,7 +27,7 @@ items_with_order as (
         i.total_item_value,
         o.purchased_at,
         o.days_to_deliver,
-        o.delivery_days_vs_estimate,
+        o.is_late_delivery,
         o.review_score,
         o.review_sentiment,
         o.is_delivered,
@@ -57,7 +57,7 @@ seller_agg as (
 
         -- Delivery speed
         avg(days_to_deliver)                            as avg_days_to_deliver,
-        avg(delivery_days_vs_estimate)                  as avg_days_vs_estimate,
+        avg(is_late_delivery)                  as avg_days_vs_estimate,
 
         -- Time range
         min(purchased_at)                               as first_sale_at,
