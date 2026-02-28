@@ -1,0 +1,80 @@
+name: string
+
+config-version: 2
+version: version
+
+profile: profilename
+
+model-paths: [directorypath]
+seed-paths: [directorypath]
+test-paths: [directorypath]
+analysis-paths: [directorypath]
+macro-paths: [directorypath]
+snapshot-paths: [directorypath]
+docs-paths: [directorypath]
+asset-paths: [directorypath]
+function-paths: [directorypath]
+
+packages-install-path: directorypath
+
+clean-targets: [directorypath]
+
+query-comment: string
+
+require-dbt-version: version-range | [version-range]
+
+flags:
+  <global-configs>
+
+dbt-cloud:
+  project-id: project_id # Required
+  defer-env-id: environment_id # Optional
+  account-host: account-host # Defaults to 'cloud.getdbt.com'; Required if use a different Access URL
+
+exposures:
+  +enabled: true | false
+
+quoting:
+  database: true | false
+  schema: true | false
+  identifier: true | false
+  snowflake_ignore_case: true | false  # Fusion-only config. Aligns with Snowflake's session parameter QUOTED_IDENTIFIERS_IGNORE_CASE behavior. 
+                                       # Ignored by dbt Core and other adapters.
+metrics:
+  <metric-configs>
+
+models:
+  <model-configs>
+
+seeds:
+  <seed-configs>
+
+semantic-models:
+  <semantic-model-configs>
+
+saved-queries:
+  <saved-queries-configs>
+
+snapshots:
+  <snapshot-configs>
+
+sources:
+  <source-configs>
+  
+data_tests:
+  <test-configs>
+
+vars:
+  <variables>
+
+on-run-start: sql-statement | [sql-statement]
+on-run-end: sql-statement | [sql-statement]
+
+dispatch:
+  - macro_namespace: packagename
+    search_order: [packagename]
+
+restrict-access: true | false
+
+functions:
+  <function-configs>
