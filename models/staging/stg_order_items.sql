@@ -10,8 +10,10 @@ renamed as (
         seller_id,
         cast(price         as double)           as item_price,
         cast(freight_value as double)           as freight_value,
-        cast(price + freight_value as double)   as total_item_value,
-        cast(shipping_limit_date as timestamp)  as shipping_limit_date
+        cast(shipping_limit_date as timestamp)  as shipping_limit_date,
+        
+        -- Derived fields
+        cast(price + freight_value as double)   as total_item_value
     from source
 )
 
