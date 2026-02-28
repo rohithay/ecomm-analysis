@@ -27,14 +27,17 @@ models:
     staging:
       +materialized: view
       +schema: staging
+      +tags: ["staging", "raw"]
 
     # Intermediate: ephemeral or views for complex joins
     intermediate:
       +materialized: ephemeral
+      +tags: ["intermediate"]
 
     # Marts: tables for BI consumption
     marts:
       +materialized: table
+      +tags: ["marts", "core", "analytics"]
       core:
         +schema: core
       analytics:
