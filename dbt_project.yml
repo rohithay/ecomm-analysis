@@ -18,7 +18,7 @@ clean-targets:
   - "target"
   - "dbt_packages"
 
-query-tag: "olist_{{ target.name }}"
+query-tag: "ecomm_analysis_{{ target.name }}"
 
 # Global model configs
 models:
