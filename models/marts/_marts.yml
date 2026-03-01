@@ -1,74 +1,483 @@
 version: 2
 
 models:
-  # ── Core Dimension & Fact Tables ────────────────────────────────
+
+  # ────────────────────────────────────────────────────────────────
+  # DIMENSION TABLES
+  # ────────────────────────────────────────────────────────────────
+
   - name: dim_customers
     description: >
-      Customer dimension with lifetime value, segment, and cohort.
-      Grain: one row per customer_unique_id.
+      Customer dimension with lifetime metrics, behavioural segments, and geo attributes.
+      Grain: one row per customer_id.
+      Source: int_customers_enriched.
     columns:
       - name: customer_id
+        description: Primary key — transactional customer ID (not unique across sessions).
         tests: [unique, not_null]
+
+      - name: customer_unique_id
+        description: Stable customer identifier across multiple orders.
+        tests: [not_null]
+
+      - name: state
+        tests: [not_null]
+
+      - name: city
+        tests: [not_null]
+
       - name: customer_segment
+        description: >
+          Derived from total_orders:
+            no_orders  = customer exists but placed no orders,
+            one_time   = exactly 1 order,
+            occasional = 2–3 orders,
+            loyal      = 4+ orders.
         tests:
           - accepted_values:
-              values: [one_time, repeat, loyal, no_orders]
-      - name: lifetime_value
+              values: [no_orders, one_time, occasional, loyal]
+
+      - name: is_repeat_buyer
+        description: True if total_orders > 1.
+        tests: [not_null]
+
+      - name: ltv_bucket
+        description: Lifetime GMV bucketed into spend tiers.
+        tests:
+          - accepted_values:
+              values: [no_spend, low, mid, high, vip]
+
+      - name: lifetime_gmv
+        description: Sum of gross_order_value across all orders.
         tests:
           - dbt_expectations.expect_column_values_to_be_between:
               min_value: 0
 
+      - name: avg_order_value
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+
+      - name: avg_freight_pct
+        description: Average of (freight / order_value) across orders. Null if no delivered orders.
+
+      - name: late_order_rate
+        description: Proportion of orders that were late. Null if no orders.
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 1
+
+      - name: total_orders
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+
+      - name: first_order_at
+      - name: last_order_at
+      - name: customer_lifespan_days
+      - name: avg_days_to_deliver
+      - name: avg_review_score
+      - name: most_used_payment_type
+
+
+  - name: dim_sellers
+    description: >
+      Seller dimension with revenue tiers, quality tiers, delivery performance,
+      and geographic attributes.
+      Grain: one row per seller_id.
+      Source: int_sellers_enriched.
+    columns:
+      - name: seller_id
+        description: Primary key.
+        tests: [unique, not_null]
+
+      - name: state
+        tests: [not_null]
+
+      - name: seller_tier
+        description: >
+          Revenue-based tier:
+            inactive = no orders,
+            small    = revenue < 5 000,
+            mid      = 5 000–50 000,
+            large    = 50 000+.
+        tests:
+          - accepted_values:
+              values: [inactive, small, mid, large]
+
+      - name: quality_tier
+        description: >
+          Review-score-based tier:
+            excellent = avg >= 4.5,
+            good      = 4.0–4.4,
+            average   = 3.0–3.9,
+            poor      = < 3.0,
+            unrated   = no reviews.
+        tests:
+          - accepted_values:
+              values: [excellent, good, average, poor, unrated]
+
+      - name: is_risk_seller
+        description: True if total_revenue > 10 000 AND avg_review_score < 3.
+        tests: [not_null]
+
+      - name: total_revenue
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+
+      - name: late_delivery_rate
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 1
+
+      - name: avg_review_score
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 1
+              max_value: 5
+
+      - name: one_star_rate
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 1
+
+      - name: total_orders
+      - name: total_items_sold
+      - name: distinct_products
+      - name: avg_item_price
+      - name: avg_days_to_deliver
+      - name: one_star_reviews
+      - name: five_star_reviews
+
+
   - name: dim_products
     description: >
-      Product dimension with category, physical attributes, and sales stats.
+      Product dimension with category (English), physical dimensions,
+      and aggregated sales and review performance.
       Grain: one row per product_id.
+      Source: int_products_enriched.
     columns:
       - name: product_id
+        description: Primary key.
         tests: [unique, not_null]
+
+      - name: category_name_english
+        description: English translation of product_category_name. Falls back to Portuguese if no translation exists.
+
+      - name: product_volume_cm3
+        description: length × height × width. Null if any dimension is missing.
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+
+      - name: size_bucket
+        description: Volume-based size classification.
+        tests:
+          - accepted_values:
+              values: [unknown, tiny, small, medium, large]
+
+      - name: freight_to_price_ratio
+        description: avg_freight_value / avg_item_price. Null if avg_item_price is 0.
+
+      - name: avg_review_score
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 1
+              max_value: 5
+
+      - name: one_star_rate
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 1
+
+      - name: times_ordered
+      - name: total_revenue
+      - name: avg_item_price
+      - name: avg_freight_value
+      - name: avg_days_to_deliver
+
+
+  # ────────────────────────────────────────────────────────────────
+  # FACT TABLES
+  # ────────────────────────────────────────────────────────────────
 
   - name: fct_orders
     description: >
-      Core order fact table.
+      Core order fact table. One row per order, fully enriched with customer state,
+      item aggregates, payment summary, delivery performance, and review score.
       Grain: one row per order_id.
+      Source: int_orders_enriched + int_customers_enriched.
     columns:
       - name: order_id
+        description: Primary key.
         tests: [unique, not_null]
+
       - name: customer_id
+        description: FK to dim_customers.
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_customers')
+              field: customer_id
+
+      - name: customer_state
         tests: [not_null]
+
+      - name: order_status
+        tests:
+          - not_null
+          - accepted_values:
+              values: [approved, canceled, delivered, invoiced, processing, shipped, unavailable]
+
+      - name: gross_order_value
+        description: items_revenue + freight_revenue.
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+
+      - name: items_revenue
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+
+      - name: freight_revenue
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+
+      - name: total_payment_value
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+
+      - name: primary_payment_type
+        tests:
+          - accepted_values:
+              values: [credit_card, boleto, voucher, debit_card]
+
+      - name: is_late_delivery
+        description: True if delivered_at > estimated_delivery_at.
+
+      - name: review_score
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 1
+              max_value: 5
+
+      - name: review_sentiment
+        tests:
+          - accepted_values:
+              values: [positive, neutral, negative]
+
+      - name: item_count
+      - name: distinct_products
+      - name: distinct_sellers
+      - name: days_to_deliver
+      - name: max_installments
+      - name: payment_methods_used
+      - name: purchased_at
+      - name: approved_at
+      - name: shipped_at
+      - name: delivered_at
+      - name: estimated_delivery_at
+      - name: order_month
+      - name: order_week
+      - name: purchase_day_of_week
+      - name: purchase_hour
+
+
+  # ────────────────────────────────────────────────────────────────
+  # AGGREGATE / SUMMARY MARTS
+  # ────────────────────────────────────────────────────────────────
+
+  - name: mart_revenue_monthly
+    description: >
+      Pre-aggregated revenue by month, product category, and payment type.
+      Grain: one row per (order_month, category_name_english, primary_payment_type).
+
+      Answers:
+        - Monthly / quarterly GMV trend 2016–2018
+        - Which categories drive the most revenue vs. volume?
+        - Average Order Value by payment method
+
+      NOTE: order_count here counts an order once per category it spans.
+      Do not sum order_count across categories to get total order volume —
+      use fct_orders for that.
+    columns:
+      - name: order_month
+        tests: [not_null]
+
+      - name: order_quarter
+        tests: [not_null]
+
+      - name: category_name_english
+        tests: [not_null]
+
+      - name: primary_payment_type
+        tests:
+          - accepted_values:
+              values: [credit_card, boleto, voucher, debit_card]
+
+      - name: order_count
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 1
+
       - name: gross_order_value
         tests:
           - dbt_expectations.expect_column_values_to_be_between:
               min_value: 0
-      - name: order_status
-        tests:
-          - accepted_values:
-              values: [approved, canceled, delivered, invoiced, processing, shipped, unavailable]
 
-  # ── Analytics Aggregates ────────────────────────────────────────
-  - name: agg_daily_revenue
-    description: Daily revenue snapshot with 7-day moving averages.
-    columns:
-      - name: order_date
-        tests: [unique, not_null]
-      - name: gross_revenue
+      - name: items_revenue
         tests:
           - dbt_expectations.expect_column_values_to_be_between:
               min_value: 0
 
-  - name: agg_seller_performance
-    description: Seller scorecard with tier classification.
+      - name: freight_revenue
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+
+      - name: avg_order_value
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+
+
+  - name: mart_delivery_performance
+    description: >
+      Delivery and review performance aggregated by customer state and seller.
+      Grain: one row per (customer_state, seller_id).
+
+      Answers:
+        - What % of orders are on time vs. late?
+        - Which states have the worst delivery performance?
+        - Correlation between delivery delay and review score
+        - Which sellers consistently ship late?
+
+      Slicing tips:
+        - State-only analysis  → GROUP BY customer_state in your BI tool
+        - Seller-only analysis → GROUP BY seller_id
+    columns:
+      - name: customer_state
+        tests: [not_null]
+
+      - name: seller_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_sellers')
+              field: seller_id
+
+      - name: delivered_orders
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 1
+
+      - name: late_delivery_rate
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 1
+
+      - name: avg_review_score
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 1
+              max_value: 5
+
+      - name: on_time_orders
+      - name: late_orders
+      - name: avg_days_late
+      - name: avg_days_late_when_late
+      - name: avg_days_to_deliver
+      - name: avg_review_score_when_late
+      - name: avg_review_score_when_on_time
+      - name: positive_reviews
+      - name: negative_reviews
+
+
+  - name: mart_seller_health
+    description: >
+      Wide seller scorecard with rankings, risk flags, and geographic concentration.
+      Grain: one row per seller_id.
+
+      Answers:
+        - Top 10 sellers by revenue
+        - High revenue / low review risk sellers
+        - Geographic concentration of sellers
+
+      NOTE: This is a pre-ranked, BI-ready view over dim_sellers.
+      Revenue rank and decile are computed globally across all sellers
+      with at least one order.
     columns:
       - name: seller_id
+        description: Primary key.
         tests: [unique, not_null]
+
       - name: seller_tier
         tests:
           - accepted_values:
-              values: [platinum, gold, silver, bronze]
+              values: [inactive, small, mid, large]
 
-  - name: agg_product_category_sales
-    description: Monthly category-level revenue with MoM growth.
-    columns:
-      - name: category_name
+      - name: quality_tier
+        tests:
+          - accepted_values:
+              values: [excellent, good, average, poor, unrated]
+
+      - name: is_risk_seller
+        description: High revenue + low review score flag.
         tests: [not_null]
-      - name: order_month
+
+      - name: is_top_10_seller
+        description: True if revenue_rank <= 10.
         tests: [not_null]
+
+      - name: revenue_rank
+        description: Global rank by total_revenue descending. 1 = highest revenue seller.
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 1
+
+      - name: revenue_decile
+        description: 1 = top 10% of sellers by revenue, 10 = bottom 10%.
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 1
+              max_value: 10
+
+      - name: total_revenue
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+
+      - name: late_delivery_rate
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 1
+
+      - name: pct_sellers_in_state
+        description: What % of all sellers are in this seller's state.
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 100
+
+      - name: state
+      - name: city
+      - name: total_orders
+      - name: total_items_sold
+      - name: distinct_products
+      - name: avg_item_price
+      - name: avg_days_to_deliver
+      - name: avg_review_score
+      - name: one_star_reviews
+      - name: five_star_reviews
+      - name: one_star_rate
+      - name: sellers_in_state
