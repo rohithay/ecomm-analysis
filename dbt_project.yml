@@ -37,10 +37,7 @@ models:
     # Marts: tables for BI consumption
     marts:
       +materialized: table
-      +tags: ["marts", "core", "analytics"]
-      core:
-        +schema: core
-        +severity: error
+      +tags: ["marts", "analytics"]
       analytics:
         +schema: analytics
         +severity: error
