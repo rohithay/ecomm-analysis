@@ -39,11 +39,11 @@ models:
       +materialized: table
       +tags: ["marts", "analytics", "core"]
       core:
+        +materialized: table
         +schema: core
-        +severity: error
       analytics:
+        +materialized: view
         +schema: analytics
-        +severity: error
 
 tests:
   +store_failures: true
