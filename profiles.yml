@@ -8,5 +8,6 @@ ecomm_analysis:
       threads: 4
     prod:
       type: duckdb
+      path: /Users/rohitha/github-projects/ecomm-analysis/prod.duckdb
       schema: prod
       threads: 8
