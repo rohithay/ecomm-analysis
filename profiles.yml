@@ -6,3 +6,7 @@ ecomm_analysis:
       path: /Users/rohitha/github-projects/ecomm-analysis/dev.duckdb
       schema: main
       threads: 4
+    prod:
+      type: duckdb
+      schema: prod
+      threads: 8
