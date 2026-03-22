@@ -1,13 +1,13 @@
 ecomm_analysis:
-  target: dev
+  target: "{{ env_var('DBT_TARGET', 'dev') }}"
   outputs:
     dev:
       type: duckdb
-      path: /Users/rohitha/github-projects/ecomm-analysis/dev.duckdb
+      path: "{{ env_var('DBT_DUCKDB_PATH', '/tmp/dev.duckdb') }}"
       schema: main
       threads: 4
     prod:
       type: duckdb
-      path: /Users/rohitha/github-projects/ecomm-analysis/prod.duckdb
+      path: "{{ env_var('DBT_DUCKDB_PATH', '/tmp/prod.duckdb') }}"
       schema: prod
       threads: 8
