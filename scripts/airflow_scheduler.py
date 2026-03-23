@@ -18,22 +18,22 @@ with DAG(
 
     dbt_deps = BashOperator(
         task_id="dbt_deps",
-        bash_command="cd /path/to/dbt_project && dbt deps"
+        bash_command="cd ../ecomm-analysis && dbt deps"
     )
 
     dbt_seed = BashOperator(
         task_id="dbt_seed",
-        bash_command="cd /path/to/dbt_project && dbt seed --target dev"
+        bash_command="cd ../ecomm-analysis && dbt seed --target dev"
     )
 
     dbt_run = BashOperator(
         task_id="dbt_run",
-        bash_command="cd /path/to/dbt_project && dbt run --target dev --select state:modified+"
+        bash_command="cd ../ecomm-analysis && dbt run --target dev --select state:modified+"
     )
 
     dbt_test = BashOperator(
         task_id="dbt_test",
-        bash_command="cd /path/to/dbt_project && dbt test --target dev"
+        bash_command="cd ../ecomm-analysis && dbt test --target dev"
     )
 
     # 🔗 Dependency Order
