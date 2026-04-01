@@ -5,6 +5,7 @@
   Uses customer_unique_id (not customer_id) to correctly
   capture repeat buyers.
 */
+{{ config(tags=['daily']) }}
 
 with orders as (
     select * from {{ ref('int_orders_enriched') }}
