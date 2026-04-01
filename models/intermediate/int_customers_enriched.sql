@@ -12,6 +12,7 @@
     - dim_customers
     - mart_delivery_performance (freight % by region)
 */
+{{ config(tags=['daily']) }}
 
 with customers as (
     select * from {{ ref('stg_customers') }}
