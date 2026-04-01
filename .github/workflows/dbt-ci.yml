@@ -34,6 +34,10 @@ jobs:
 
       - name: dbt build (changed only)
         run: |
-          dbt build \
-            --select state:modified+ \
-            --state state/
+          if [ -f state/manifest.json ]; then
+            echo "Running state-based build"
+            dbt build --select state:modified+ --state state/
+          else
+            echo "No state found, running full build"
+            dbt build
+          fi
