@@ -6,6 +6,7 @@
     • payment totals and primary payment method
     • review score (if available)
 */
+{{ config(tags=['daily']) }}
 
 with orders as (
     select * from {{ ref('stg_orders') }}

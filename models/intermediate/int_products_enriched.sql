@@ -14,6 +14,7 @@
     - mart_delivery_performance (category delivery time)
     - Product Intelligence questions
 */
+{{ config(tags=['daily']) }}
 
 with products as (
     select * from {{ ref('stg_products') }}
