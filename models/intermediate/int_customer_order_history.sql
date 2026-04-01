@@ -5,7 +5,6 @@
   Uses customer_unique_id (not customer_id) to correctly
   capture repeat buyers.
 */
-{{ config(tags=['daily']) }}
 
 {{ config(tags=['daily']) }}
 
