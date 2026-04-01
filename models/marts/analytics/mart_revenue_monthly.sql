@@ -15,6 +15,7 @@
   attribution but will overcount if you sum order_count across
   categories to get total order count. Use fct_orders for that.
 */
+{{ config(tags=['daily']) }}
 
 with order_items_categorised as (
     select
