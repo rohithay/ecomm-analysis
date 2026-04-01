@@ -14,6 +14,8 @@
     - mart_seller_health
     - mart_delivery_performance
 */
+{{ config(tags=['daily']) }}
+
 
 with sellers as (
     select * from {{ ref('stg_sellers') }}
