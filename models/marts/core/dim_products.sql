@@ -3,6 +3,7 @@
   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   Grain: one row per product_id
 */
+{{ config(tags=['daily']) }}
 
 select
     product_id,
