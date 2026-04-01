@@ -11,6 +11,7 @@
   This is essentially a wide, BI-ready version of dim_sellers
   with pre-computed rankings and risk flags added.
 */
+{{ config(tags=['daily']) }}
 
 with sellers as (
     select * from {{ ref('dim_sellers') }}
