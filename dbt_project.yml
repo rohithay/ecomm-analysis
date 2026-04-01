@@ -32,7 +32,7 @@ models:
     # Intermediate: ephemeral or views for complex joins
     intermediate:
       +materialized: ephemeral
-      +tags: ["intermediate"]
+      +tags: ["intermediate", "daily"]
 
     # Marts: tables for BI consumption
     marts:
