@@ -6,6 +6,8 @@
   capture repeat buyers.
 */
 
+{{ config(tags=['daily']) }}
+
 with orders as (
     select * from {{ ref('int_orders_enriched') }}
 ),
