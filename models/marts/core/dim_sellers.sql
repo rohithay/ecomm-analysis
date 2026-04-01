@@ -7,6 +7,8 @@
   and as a target for mart_seller_health.
 */
 
+{{ config(tags=['daily']) }}
+
 select
     seller_id,
     state,
