@@ -6,6 +6,7 @@
   Descriptive dimension for filtering and segmentation.
   All metrics already computed in int_customers_enriched.
 */
+{{ config(tags=['daily']) }}
 
 select
     customer_id,
