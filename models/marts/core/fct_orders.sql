@@ -13,6 +13,8 @@
   model, it belongs one layer down in int_orders_enriched.
 */
 
+{{ config(tags=['daily']) }}
+
 with orders as (
     select * from {{ ref('int_orders_enriched') }}
 ),
