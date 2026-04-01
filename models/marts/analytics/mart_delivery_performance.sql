@@ -13,6 +13,7 @@
   state alone (GROUP BY customer_state in BI) or seller alone
   (GROUP BY seller_id). This avoids building two separate aggregate tables.
 */
+{{ config(tags=['daily']) }}
 
 with orders as (
     select
